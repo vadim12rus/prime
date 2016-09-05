@@ -32,14 +32,13 @@ void SearchSurname(FILE* const& file)
 	while (!feof(file))
 	{
 		str2 = ReadSurname(file);
-		if ((CompareStrings(str1, str2) > 0) /*&& IsReplaced(surname[i])*/)
+		if ((CompareStrings(str1, str2) > 0) && (str2 != "")  /*&& IsReplaced(surname[i])*/)
 		{
 			str1 = str2;
 		}
 	}
-	std::cout << str1.c_str() << std::endl;
+	std::cout << "Замена: |" << str1.c_str() << "|" << std::endl;
 }
-
 
 int main()
 {
