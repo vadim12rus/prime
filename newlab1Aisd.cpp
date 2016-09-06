@@ -1,17 +1,20 @@
 #include <cstdio>
 #include <iostream>
 
+static const char FILE_NAME[] = "file/surname.txt";
+static const char REPLACEMENT = '*';
+
 struct Surname
 {
 	std::string surname;
-	int startBytes;
+	long startBytes;
 	int amountChar;
 };
 
 FILE* OpenFile()
 {
 	FILE* file;
-	fopen_s(&file, "file/surname.txt", "r+b");
+	fopen_s(&file, FILE_NAME, "r+b");
 	return file;
 }
 
@@ -20,34 +23,29 @@ int CompareStrings(std::string const& a, std::string const& b)
 	return (strcmp(a.c_str(), b.c_str()));
 }
 
-std::string ReadSurname(FILE* const& file)
+std::string ReadSurname(FILE* const& file, long & position)
 {
 	std::string str = "";
 	char ch;
-	while (((ch = getc(file)) != '\n') && !feof(file))
+	while (((ch = getc(file)) != '\n') && (ch != '\r') &&  (ch != EOF))
 	{
-		if (isalpha(ch))
-		{
-			str += ch;
-		}
-
+		position = ftell(file);
+		str += ch;
 	}
 	return str;
 }
 
-Surname SearchSurname(FILE* const& file)
+Surname SearchSurname(FILE* & file)
 {
-	std::string str1 = ReadSurname(file);
+	long position = ftell(file);
+	std::string str1 = ReadSurname(file, position);
 	std::string str2 = "";
-	long position = ftell(file);;
-
 	while (!feof(file))
 	{
-		str2 = ReadSurname(file);
+		str2 = ReadSurname(file, position);
 		if ((CompareStrings(str1, str2) > 0) && (str2 != "") || ((str1 == "") && (str2 != "")) /*&& IsReplaced(surname[i])*/)
 		{
 			str1 = str2;
-			position = ftell(file);
 		}
 	}
 	Surname surname;
@@ -55,6 +53,23 @@ Surname SearchSurname(FILE* const& file)
 	surname.amountChar = str1.length();
 	surname.startBytes = position - str1.length();
 	return surname;
+}
+
+std::string GetStringReplacement(Surname const& surname)
+{
+	std::string buf = "";
+	for (int i = 0; i != surname.amountChar; i++)
+	{
+		buf += REPLACEMENT;
+	}
+	return buf;
+}
+
+void ReplaceWord(FILE* & file, Surname const& surname)
+{
+	std::string replacement = GetStringReplacement(surname);
+	fseek(file, surname.startBytes, SEEK_SET);
+	fwrite(replacement.c_str(), surname.amountChar, 1, file);
 }
 
 int main()
@@ -66,6 +81,10 @@ int main()
 		//fseek(ptrFile, 0, SEEK_SET);
 		long size = ftell(ptrFile);
 		Surname surname = SearchSurname(ptrFile);
+		if (surname.amountChar > 1)
+		{
+			ReplaceWord(ptrFile, surname);
+		}
 		std::cout << "Word: " << surname.surname.c_str() << std::endl;
 		std::cout << "startBytes: " << surname.startBytes << std::endl;
 		std::cout << "amountChar: " << surname.amountChar << std::endl;
