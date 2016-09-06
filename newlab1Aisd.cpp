@@ -1,5 +1,4 @@
-#include <cstdio>
-#include <iostream>
+#include "stdafx.h"
 
 static const char FILE_NAME[] = "file/surname.txt";
 static const char REPLACEMENT = '*';
@@ -89,16 +88,16 @@ void OutputDataSurname(Surname const& surname)
 int main()
 {
 	setlocale(LC_ALL, "rus");
-	FILE * ptrFile = OpenFile();
-	if (ptrFile != NULL)
+	FILE * file = OpenFile();
+	if (file != NULL)
 	{
-		Surname surname = SearchSurname(ptrFile);
+		Surname surname = SearchSurname(file);
 		if (surname.amountChar > 1)
 		{
-			ReplaceWord(ptrFile, surname);
+			ReplaceWord(file, surname);
+			OutputDataSurname(surname);
 		}
-		OutputDataSurname(surname);
-		fclose(ptrFile);
+		fclose(file);
 	}
 	else
 	{
