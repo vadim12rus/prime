@@ -23,14 +23,14 @@ int CompareStrings(std::string const& a, std::string const& b)
 	return (strcmp(a.c_str(), b.c_str()));
 }
 
-std::string ReadSurname(FILE* const& file, long & position)
+std::string ReadSurname(FILE* const& file, long & positionCurr)
 {
 	std::string str = "";
 	char ch;
 	while (((ch = getc(file)) != '\n') && (ch != '\r') &&  (ch != EOF))
 	{
-		position = ftell(file);
 		str += ch;
+		positionCurr = ftell(file);
 	}
 	return str;
 }
@@ -44,19 +44,21 @@ void SaveInStructure(Surname & surname, std::string const& str1, long const& pos
 
 Surname SearchSurname(FILE* & file)
 {
-	long position = ftell(file);
-	std::string str1 = ReadSurname(file, position);
+	long positionCurr;
+	std::string str1 = ReadSurname(file, positionCurr);
 	std::string str2 = "";
+	long positionMaxSurname = positionCurr;
 	while (!feof(file))
 	{
-		str2 = ReadSurname(file, position);
+		str2 = ReadSurname(file, positionCurr);
 		if ((CompareStrings(str1, str2) > 0) && (str2 != "") || ((str1 == "") && (str2 != "")))
 		{
 			str1 = str2;
+			positionMaxSurname = positionCurr;
 		}
 	}
 	Surname surname;
-	SaveInStructure(surname, str1, position);
+	SaveInStructure(surname, str1, positionMaxSurname);
 	return surname;
 }
 
