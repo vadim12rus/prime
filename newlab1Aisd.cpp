@@ -1,10 +1,17 @@
 #include <cstdio>
 #include <iostream>
 
+struct Surname
+{
+	std::string surname;
+	int startBytes;
+	int amountChar;
+};
+
 FILE* OpenFile()
 {
 	FILE* file;
-	fopen_s(&file, "file/surname.txt", "r+");
+	fopen_s(&file, "file/surname.txt", "r+b");
 	return file;
 }
 
@@ -19,38 +26,50 @@ std::string ReadSurname(FILE* const& file)
 	char ch;
 	while (((ch = getc(file)) != '\n') && !feof(file))
 	{
-		str += ch;
+		if (isalpha(ch))
+		{
+			str += ch;
+		}
+
 	}
-	std::cout << str.c_str() << std::endl;
 	return str;
 }
 
-void SearchSurname(FILE* const& file)
+Surname SearchSurname(FILE* const& file)
 {
 	std::string str1 = ReadSurname(file);
 	std::string str2 = "";
+	long position = ftell(file);;
+
 	while (!feof(file))
 	{
 		str2 = ReadSurname(file);
-		if ((CompareStrings(str1, str2) > 0) && (str2 != "")  /*&& IsReplaced(surname[i])*/)
+		if ((CompareStrings(str1, str2) > 0) && (str2 != "") || ((str1 == "") && (str2 != "")) /*&& IsReplaced(surname[i])*/)
 		{
 			str1 = str2;
+			position = ftell(file);
 		}
 	}
-	std::cout << "Замена: |" << str1.c_str() << "|" << std::endl;
+	Surname surname;
+	surname.surname = str1;
+	surname.amountChar = str1.length();
+	surname.startBytes = position - str1.length();
+	return surname;
 }
 
 int main()
 {
 	setlocale(LC_ALL, "rus");
 	FILE * ptrFile = OpenFile();
-	if (ptrFile != NULL) 
+	if (ptrFile != NULL)
 	{
 		//fseek(ptrFile, 0, SEEK_SET);
-		long size = ftell(ptrFile); 
-		SearchSurname(ptrFile);
-		fclose(ptrFile);               
-		std::cout << "Размер файла file.txt: " << size << " байт\n";
+		long size = ftell(ptrFile);
+		Surname surname = SearchSurname(ptrFile);
+		std::cout << "Word: " << surname.surname.c_str() << std::endl;
+		std::cout << "startBytes: " << surname.startBytes << std::endl;
+		std::cout << "amountChar: " << surname.amountChar << std::endl;
+		fclose(ptrFile);
 	}
 	system("pause");
 	return 0;
