@@ -6,7 +6,7 @@ static const char REPLACEMENT = '*';
 
 struct Surname
 {
-	std::string surname;
+	std::string word;
 	long startBytes;
 	int amountChar;
 };
@@ -35,6 +35,13 @@ std::string ReadSurname(FILE* const& file, long & position)
 	return str;
 }
 
+void SaveInStructure(Surname & surname, std::string const& str1, long const& position)
+{
+	surname.word = str1;
+	surname.amountChar = str1.length();
+	surname.startBytes = position - str1.length();
+}
+
 Surname SearchSurname(FILE* & file)
 {
 	long position = ftell(file);
@@ -43,15 +50,13 @@ Surname SearchSurname(FILE* & file)
 	while (!feof(file))
 	{
 		str2 = ReadSurname(file, position);
-		if ((CompareStrings(str1, str2) > 0) && (str2 != "") || ((str1 == "") && (str2 != "")) /*&& IsReplaced(surname[i])*/)
+		if ((CompareStrings(str1, str2) > 0) && (str2 != "") || ((str1 == "") && (str2 != "")))
 		{
 			str1 = str2;
 		}
 	}
 	Surname surname;
-	surname.surname = str1;
-	surname.amountChar = str1.length();
-	surname.startBytes = position - str1.length();
+	SaveInStructure(surname, str1, position);
 	return surname;
 }
 
@@ -72,23 +77,31 @@ void ReplaceWord(FILE* & file, Surname const& surname)
 	fwrite(replacement.c_str(), surname.amountChar, 1, file);
 }
 
+void OutputDataSurname(Surname const& surname)
+{
+	std::cout << "Word: " << surname.word.c_str() << std::endl;
+	std::cout << "startBytes: " << surname.startBytes << std::endl;
+	std::cout << "amountChar: " << surname.amountChar << std::endl;
+}
+
 int main()
 {
 	setlocale(LC_ALL, "rus");
 	FILE * ptrFile = OpenFile();
 	if (ptrFile != NULL)
 	{
-		//fseek(ptrFile, 0, SEEK_SET);
-		long size = ftell(ptrFile);
 		Surname surname = SearchSurname(ptrFile);
 		if (surname.amountChar > 1)
 		{
 			ReplaceWord(ptrFile, surname);
 		}
-		std::cout << "Word: " << surname.surname.c_str() << std::endl;
-		std::cout << "startBytes: " << surname.startBytes << std::endl;
-		std::cout << "amountChar: " << surname.amountChar << std::endl;
+		OutputDataSurname(surname);
 		fclose(ptrFile);
+	}
+	else
+	{
+		std::cout << "An error with the file!!!" << std::endl;
+		return 1;
 	}
 	system("pause");
 	return 0;
